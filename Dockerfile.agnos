@@ -128,6 +128,9 @@ RUN cd /tmp && apt-get -o Dpkg::Options::="--force-overwrite" install -yq ./ffmp
 
 ARG XDG_DATA_HOME="/usr/local"
 
+COPY ./userspace/compile-opencv.sh /tmp/compile-opencv.sh
+RUN /tmp/compile-opencv.sh
+
 # Install openpilot python packages
 COPY ./userspace/uv /tmp/agnos/uv
 RUN source $XDG_DATA_HOME/venv/bin/activate && \
