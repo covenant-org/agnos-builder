@@ -47,6 +47,13 @@ COPY ./userspace/qtwayland/patch* /tmp/agnos/
 RUN --mount=type=cache,target=/root/.ccache,id=qtwayland5,sharing=shared \
     /tmp/agnos/compile-qtwayland5.sh
 
+# opencv
+FROM agnos-compiler AS agnos-compiler-opencv
+COPY ./userspace/compile-opencv.sh /tmp/agnos/compile-opencv.sh
+RUN --mount=type=cache,target=/root/.ccache,id=opencv,sharing=shared \
+ /tmp/agnos/compile-opencv.sh
+
+
 # ################## #
 # ###### Base ###### #
 # ################## #
@@ -126,10 +133,18 @@ RUN cd /tmp && apt-get -o Dpkg::Options::="--force-overwrite" install -yq ./capn
 COPY --from=agnos-compiler-ffmpeg /tmp/ffmpeg.deb /tmp/ffmpeg.deb
 RUN cd /tmp && apt-get -o Dpkg::Options::="--force-overwrite" install -yq ./ffmpeg.deb
 
+COPY --from=agnos-compiler-opencv /tmp/opencv.deb /tmp/opencv.deb
+RUN cd /tmp && \
+    apt-get update && \
+    apt-get install -yq --no-install-recommends \
+      libgstreamer1.0-0 \
+      libgstreamer-plugins-base1.0-0 \
+      gstreamer1.0-plugins-ugly \
+      gstreamer1.0-rtsp && \
+    apt-get -o Dpkg::Options::="--force-overwrite" install -yq ./opencv.deb
+
 ARG XDG_DATA_HOME="/usr/local"
 
-COPY ./userspace/compile-opencv.sh /tmp/compile-opencv.sh
-RUN /tmp/compile-opencv.sh
 
 # Install openpilot python packages
 COPY ./userspace/uv /tmp/agnos/uv
